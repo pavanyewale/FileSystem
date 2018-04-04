@@ -1,7 +1,8 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
-#include"struct.h"
+//#include"struct.h"
+#include"extra.h"
 int loadhdd(char *hname,hd **h)
 {   hdd *new;
 
@@ -47,6 +48,7 @@ int writeBlock(hd *hh,int blockno,char *buf)
 
 int setBlock(hd *hh,unsigned long blockno)
 {   
+        char *buff;
     hdd *h;
     h=hh->hdd;
     if(!(blockno>((h->size)/h->blockSize)||blockno<1))
@@ -55,16 +57,17 @@ int setBlock(hd *hh,unsigned long blockno)
         int byteno=((blockno%(h->blockSize*8)-1)/8);
         blockno-=1;
         int bitno=(blockno%8);
-        char *buff;
         readBlock(hh,blno,&buff);
         buff[byteno]=buff[byteno]|(int)(pow(2,bitno));
         writeBlock(hh,blno,buff);
 
     }
+    free(buff);
     return 0;
 }
 int freeBlock(hd *hh,unsigned long blockno)
 { 
+        char *buff;
     hdd *h;
     h=hh->hdd;
     if(!(blockno>((h->size)/h->blockSize)||blockno<1))
@@ -73,15 +76,17 @@ int freeBlock(hd *hh,unsigned long blockno)
         int byteno=((blockno%(h->blockSize*8)-1)/8);
         blockno-=1;
         int bitno=(blockno%8);
-        char *buff;
         readBlock(hh,blno,&buff);
         buff[byteno]=buff[byteno]&(255-(int)((pow(2,bitno))));
         writeBlock(hh,blno,buff);
     }
+    free(buff);
     return 0;
 }
 int isFreeBlock(hd *hh,unsigned long blockno)
 {
+        char *buff;
+        int ret;
     hdd *h;
     h=hh->hdd;
     if(!(blockno>((h->size)/h->blockSize)||blockno<1))
@@ -92,8 +97,11 @@ int isFreeBlock(hd *hh,unsigned long blockno)
         int bitno=((blockno)%8);
         char *buff;
         readBlock(hh,blno,&buff);
-        return !((buff[byteno]>>bitno)&1);
+        
+        ret= !((buff[byteno]>>bitno)&1);
     } 
+    free(buff);
+    return ret;
 }
 
 int getFirstFreeBlock(hd *hh, int *block)
@@ -111,11 +119,13 @@ int getFirstFreeBlock(hd *hh, int *block)
                     if((buff[j] & (1<<k))==0)
                     {
                         *block=(k+1)+((j)*8)+((i-2)*(h->blockSize*8));
+                        free(buff);
                         return 1;
                     }
                 }
             }
         }
+        free(buff);
     }
     return 0;
 }

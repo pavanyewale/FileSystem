@@ -1,0 +1,20 @@
+#include"struct.h"
+int reset(char *);
+int createDisk(char *,int,int);
+void printb(hd *,int);
+int loadhdd(char *,hd **);
+int readBlock(hd *,int,char **);
+int writeBlock(hd *,int,char *);
+int setBlock(hd *,unsigned long);
+int freeBlock(hd *,unsigned long);
+int isFreeBlock(hd *,unsigned long);
+int getFirstFreeBlock(hd *, int *);
+int freesubblock(hdd *,char **,int,int *);
+int allocateBlock(hd *,int,int *);
+int writemetablock(hd *,int,int,int);
+int writenameblocks(hd *,int,char **,int,int,int *,int*);
+int writename(hd *,char *);
+int getName(hd *,char *,int,int,int,char **);
+int displayNames(hd *,int);
+long int btoi(unsigned char *);
+int split(char *,int,char ***,int *);

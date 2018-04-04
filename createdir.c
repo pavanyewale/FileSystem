@@ -1,13 +1,13 @@
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
+#include"header.h"
 #include"fname.h"
 int reset(char *hddname)
 { 
     hd *hh;
     int i;
     loadhdd(hddname,&hh);
-    printf("\n\n****%d******    %d\n",hh->hdd->size,hh->hdd->blockSize);
     
     hdd *h;
     h=hh->hdd;
@@ -19,10 +19,7 @@ int reset(char *hddname)
     if(extra>0)
         aloblocks+=1;
     nobytes=aloblocks/8;
-    printf("nobytes:%d",nobytes);
     nobits=(aloblocks%8);
-    printf("\n no of bits on:%d",nobits);
-    /*writing first block*/
     for(i=0;i<nobytes;i++)
     {
         buff[i]=0xff;
@@ -30,14 +27,12 @@ int reset(char *hddname)
     int ans=0;
     for(i=0;i<nobits;i++)
         ans|=1<<i;
-    printf("\n number by bits:%d",ans);
     buff[nobytes]=ans;
     for(i=nobytes+1;i<h->blockSize;i++)
         buff[i]=0x00;
     writeBlock(hh,2,buff);
     unsigned char *buf;
     buf=(char*)malloc(h->blockSize);
-    /*writing remaining blocks*/
     for(i=0;i<nobytes;i++)
         buf[i]=0x00;
     for(i=3;i<=aloblocks;i++)
@@ -64,7 +59,7 @@ int createDisk(char *name,int size,int blocksize)
     fp=fopen(name,"r");
     if(fp!=NULL)
     {
-        return 0;//Disk allready exists
+        return 0;
     }
     float s;
     s=size/(1024);
@@ -80,12 +75,12 @@ int createDisk(char *name,int size,int blocksize)
     free(cmd);
     if(x==127)
     {
-    return 2;       //cannot create Disk
+    return 2;    
     }
     
     fp=fopen(name,"r+");
     if(fp==NULL)
-        return 2;   //cannot create Disk
+        return 2; 
     fseek(fp,0,SEEK_SET);
     hdd *h;
     h=(hdd*)malloc(sizeof(hdd));
@@ -97,8 +92,9 @@ int createDisk(char *name,int size,int blocksize)
     h->nameblock=h->metablock+1;
     fwrite(h,sizeof(hdd),1,fp);
     fclose(fp);
+    free(h);
     reset(name);
-    return 1;       //Disk created successfully and allocated.
+    return 1;    
 }
 
 
@@ -111,7 +107,7 @@ readBlock(hh,bno,&buff);
 int i;
 printf("\n");
 for(i=0;i<h->blockSize;i++)
-    printf("%c",buff[i]);
+    printf("%x",buff[i]);
 free(buff);
 }
 
@@ -126,26 +122,51 @@ void main()
        char *buf;
        int blk,nblk;
        
-       // split("Hello worlkasjdflkajdf a;lkdjf a;lkdjf a;lkdjf a;lksdjf ;alskdjf ;alksdjf ;alkdsjf a;lkdjf a;lkdjf a;lkdjf ;ladjfa;ldkfja d;flkajd f;lakdjf;lkadjf;lakdjsf;lkasdjf;alkjdf;kladjfalk;jdf a;sldkfja;ldkfja s;ldkfj a;slkdfjas d;lfkjasd flkajsdf lasjflld ,this is the file system of the main porgram so that we can implementn it in the c programming langualge and I am aso glad that I got a chance to do this thank hyou so much Walk in - Financial Analyst -Any Freshers M.com, B.com,mba (0-1 yrs.)WISDOM BRIDGE MANAGEMENT CONSULTANTS",24,&str,&n);
+        split("Hello worlkasjdflkajdf a;lkdjf a;lkdjf a;lkdjf a;lksdjf ;alskdjf ;alksdjf ;alkdsjf a;lkdjf a;lkdjf a;lkdjf ;ladjfa;ldkfja d;flkajd f;lakdjf;lkadjf;lakdjsf;lkasdjf;alkjdf;kladjfalk;jdf a;sldkfja;ldkfja s;ldkfj a;slkdfjas d;lfkjasd flkajsdf lasjflld ,this is the file system of the main porgram so that we can implementn it in the c programming langualge and I am aso glad that I got a chance to do this thank hyou so much Walk in - Financial Analyst -Any Freshers M.com, B.com,mba (0-1 yrs.)WISDOM BRIDGE MANAGEMENT CONSULTANTS",24,&str,&n);
        //split("hkldjflajdflajdlkfjaljdfjsad;fjklasdjfello world",24,&str,&n); 
-        //printf("\n\n\nno of strings :%d",n);
+        //writename(h,"Hello world this is best example");
+        allocateBlock(h,8,&blk);
+
+        printb(h,blk);
+
+
+
+
+       //displayNames(h,h->hdd->metablock);
+       return;
+       //writename(h,"hel alkdjf aldkjf aldj flo pavan yewale"); 
+        readBlock(h,129,&buf);
+        printf("block:%ld",btoi(&buf[20]));
+        printb(h,130);
+       printf("\n\n\n");
+       printb(h,129);
+       return ;
+       //printf("\n\n\nno of strings :%d",n);
         //allocateBlock(h,32,&blk);
         //printf("\nsub block free for %d",blk);
         //printb(h,blk);
-        //readBlock(h,136,&buf);
-        //freesubblock(h->hdd,131,32,&blk);
-        //printf("sub block free for size 8 is %d",blk);
+        readBlock(h,136,&buf);
+        freesubblock(h->hdd,&buf,8,&blk);
+        printf("sub block free for size 8 is %d",blk);
         //writeBlock(h,136,buf);
+        //writemetablock(h,h->hdd->metablock,140,7);
+        displayNames(h,h->hdd->metablock);
+        //readBlock(h,129,&buf);
+        
+        return ;
         //writenameblocks(h,h->hdd->nameblock,str,0,n,&blk,&nblk);
         //printf("\n\nblock no %d   nameblock no %d   \n\n",blk,nblk);
-       /*/ printb(h,130);
+        printb(h,h->hdd->metablock);
+
+        /*/ printb(h,130);
         //readBlock(h,130,&buf);
         //printf("next block :%ld",btoi(&buf[56]));
         //printb(h,130);
-       *///char *st;
-       //readBlock(h,130,&buf);
-        //getName(h,buf,130,2,1,&st);
-        //printf("\n\n return name is : \n %s",st);
+       */char *st;
+       readBlock(h,130,&buf);
+       st[0]=0x00;
+        getName(h,buf,130,2,1,&st);
+        printf("\n\n return name is : \n %s",st);
         //n=freesubblock(h->hdd,buf,32,&blk);
         //printf("\n\n\nisfree %d  nameblock %d",n,blk);
         /*allocnameblock(h,&n);

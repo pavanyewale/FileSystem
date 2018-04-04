@@ -1,5 +1,4 @@
 #include<string.h>
-#include"extra.h"
 #include"diskDriver.h"
 
 int freesubblock(hdd *h,char **buf,int subblocksize,int *blk)//working 100% correct tested
@@ -61,6 +60,10 @@ for(int i=0;i<bits;i++)
 char *s;
 s=(char*)&ans;
 strcpy(&buf[0],s);
+for(bits=hh->hdd->nameblocksize-4;bits<hh->hdd->nameblocksize;bits++)
+{
+    buf[bits]=0x00;
+}
 setBlock(hh,*returnBlock);
 writeBlock(hh,*returnBlock,buf);
 return 1;
@@ -68,7 +71,10 @@ return 1;
 /////////////////////////////////////
 int writemetablock(hd *hh,int mblock,int block,int nblock)
 {
+
+    printf("\nwriting meta block:nblock:%d  nnblock:%d",block,nblock);
     char *buf;
+    unsigned char *c;
     readBlock(hh,mblock,&buf);
     int mmblock,x;
     x= freesubblock(hh->hdd,&buf,8,&mmblock);
@@ -79,17 +85,23 @@ int writemetablock(hd *hh,int mblock,int block,int nblock)
             x=allocateBlock(hh,8,&mmblock);
             if(!x)
                 return 0;
+            c=(unsigned char*)&mmblock;
+            strcpy(&buf[4],c);
+            writeBlock(hh,mblock,buf);
+            printf("freee   1");
+            free(buf);
         }
         return writemetablock(hh,mmblock,block,nblock);
     } 
     
     int pos=(mmblock-1)<<3;
-    unsigned char *c;
     c=(unsigned char*)&block;
     strcpy(&buf[pos],c);
     c=(unsigned char*)&nblock;
     strcpy(&buf[pos+4],c);
     writeBlock(hh,mblock,buf);
+    printf("free 2");
+    free(buf);
     return 1;
 }
 
@@ -103,13 +115,14 @@ int writenameblocks(hd *hh,int block,char **names,int index,int totalNames,int *
     if(!flag)
     {
         int blk;
-        blk= btoi(&buf[hh->hdd->blockSize-4]);
+        blk= btoi(&buf[hh->hdd->nameblocksize-4]);
         if(blk==0)
         {   
             allocateBlock(hh,hh->hdd->nameblocksize,&blk);
+            printf(" \n\n %d",blk);
             char *b;
             b=(char*)&blk;
-            strcpy(&buf[hh->hdd->blockSize-4],b);
+            strcpy(&buf[hh->hdd->nameblocksize-4],b);
             writeBlock(hh,block,buf);
             free(buf);
             return writenameblocks(hh,blk,names,index,totalNames,returnBlock,returnNameBlock);
@@ -135,32 +148,16 @@ int writenameblocks(hd *hh,int block,char **names,int index,int totalNames,int *
     c=(char*)&nextblock;
     strncpy(&s[hh->hdd->nameblocksize-8],c,4);
     c=(char*)&nextnameblock;
-    printf("\n\t next block is :%d",(int)btoi(&s[hh->hdd->nameblocksize-8]));
     strncpy(&s[hh->hdd->nameblocksize-4],c,4);
 
-    printf("\t next name block is :%d",(int)btoi(&s[hh->hdd->nameblocksize-4]));
-    ///////////
-    printf("\n");
-    for(int i=0;i<32;i++)
-        printf("  %x",s[i]);
-
-    ////////////////
     readBlock(hh,*returnBlock,&buf);
     int pos=(*returnNameBlock-1)*(hh->hdd->nameblocksize);
     for(int i=0;i<32;i++)
     {
         buf[pos+i]=s[i];
     }
-    //strcpy(&buf[(*returnNameBlock-1)*(hh->hdd->nameblocksize)],s);
-    //strncpy(s,&buf[(*returnNameBlock-1)*(hh->hdd->nameblocksize)],32);
     
-    //printf("\n next name block is :%d",(int)btoi(&s[hh->hdd->nameblocksize-4]));
-    printf("\n\n\nnext block block is:%ld",btoi(&buf[((*returnNameBlock-1)*(hh->hdd->nameblocksize))+24]));
-    printf("\n\n\nnext name block is:%ld",btoi(&buf[((*returnNameBlock-1)*(hh->hdd->nameblocksize))+28]));
     
-    /*for(int i=0;i<32;i++)
-        printf("  %x",buf[((*returnNameBlock-1)*(hh->hdd->nameblocksize))+i]);
-    */
     writeBlock(hh,*returnBlock,buf);
 
     free(buf);
@@ -184,16 +181,15 @@ int writename(hd *hh,char *name)
 ///////////////////////////////////////////////
 int getName(hd *hh,char *buf,int block,int nameblock,int level,char **returnName)//level  by default 1
 {
-printf("block:%d,nameblock:%d",block,nameblock);
+//printf("block:%d,nameblock:%d",block,nameblock);
 
 //char *c;
-
+//*returnName=(char *)realloc(*returnName,(hh->hdd->nameblocksize-5)*level);
 //c=(char*)malloc(sizeof(char)*(hh->hdd->nameblocksize-8)*level);
+//strcpy(c,*returnName);
 //free(*returnName);
-//strcat(c,*returnName);
-//*returnName=c;
+//returnName=&c;
 
-printf("\n\nok");
 strncat(*returnName,&buf[(nameblock-1)*hh->hdd->nameblocksize],hh->hdd->nameblocksize-8);
 
 int nextblock=btoi(&buf[nameblock*hh->hdd->nameblocksize-8]);
@@ -208,7 +204,34 @@ return getName(hh,buf,nextblock,btoi(&buf[nameblock*hh->hdd->nameblocksize-4]),l
 
 }
 
-int displayNames(hd *hh)
+int displayNames(hd *hh,int mblock)
 {
-    
+    char *buf,*buf1,*name;
+    int i,byte,bit,blocks;
+    readBlock(hh,mblock,&buf);
+    printf("readblockdone");
+    blocks=hh->hdd->blockSize/8;
+    printf("%d",mblock);
+
+    for(i=blocks/(8*8);i<blocks;i++)
+        {
+            printf("  iterate %d",i);
+          byte=i/8;
+          bit=i%8;
+          printf("\nbyte:%d",byte);
+          printf("\nbits:%d",bit);
+          
+          if((buf[byte]&(1<<bit))==1)
+          {  printf("iterate 2");
+              printf("%d",(int)btoi(&buf[(i+1)*8]));
+              return 1;
+              readBlock(hh,btoi(&buf[(i+1)*8]),&buf1);
+            getName(hh,buf1,btoi(&buf[(i+1)*8]),btoi(&buf[((i+1)*8)+4]),1,&name);
+            printf("\n %s",name);
+            strcpy(name,"");
+          }
+        }
+    free(buf);
+    return 1;
 }
+
