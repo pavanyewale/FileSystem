@@ -9,7 +9,7 @@ int setBlock(hd *,unsigned long);
 int freeBlock(hd *,unsigned long);
 int isFreeBlock(hd *,unsigned long);
 int getFirstFreeBlock(hd *, int *);
-int freesubblock(hdd *,char **,int,int *);
+int freesubblock(hd *,char **,int,int *);
 int allocateBlock(hd *,int,int *);
 int writemetablock(hd *,int,int,int);
 int writenameblocks(hd *,int,char **,int,int,int *,int*);

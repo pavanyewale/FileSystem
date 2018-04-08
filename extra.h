@@ -10,7 +10,7 @@ return i;
 }
 
 int split(char *str,int no,char ***result,int *n)
- {
+ {  
      int x = strlen(str)/no +1,i,k=0,j=0;
      *result = (char**)malloc(sizeof(char*)*x);
      if(*result==NULL)
@@ -28,4 +28,13 @@ int split(char *str,int no,char ***result,int *n)
      }
 	*n=j;
      return 1;
+}
+int waitforme(int i)
+{int j,k;
+for(j=0;j<20000*i;j++)
+{
+for(k=0;k<1000;k++)
+{
+}
+}
 }
