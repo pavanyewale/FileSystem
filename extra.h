@@ -1,5 +1,12 @@
 #include<string.h>
 #include<stdlib.h>
+void copybuffer(char **to,char *from,int length)
+{int i;
+for(i=0;i<length;i++)
+{
+*to[i]=from[i];
+}
+}
 long int btoi(unsigned char *c)
 {
 long int i=c[3];
@@ -12,12 +19,12 @@ return i;
 int split(char *str,int no,char ***result,int *n)
  {  
      int x = strlen(str)/no +1,i,k=0,j=0;
-     *result = (char**)malloc(sizeof(char*)*x);
+  //   *result = (char**)malloc(sizeof(char*)*x);
      if(*result==NULL)
          return 0;
      while(str[k]!='\0')
      {
-         (*result)[j] = (char*)malloc(sizeof(char)*no);
+        // (*result)[j] = (char*)malloc(sizeof(char)*no);
          for(i=0;i<no&&str[k]!='\0';k++,i++)
          {
             (*result)[j][i]=str[k];

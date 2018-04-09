@@ -14,8 +14,11 @@ int nameblocksize;
 
 struct hd
 {
+
 hdd *hdd;
 FILE *lf;
 FILE *dp;
+char *buff;
+char **names;
 };
 

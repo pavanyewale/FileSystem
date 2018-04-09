@@ -4,7 +4,7 @@
 #include"extra.h"
 int loadhdd(char *hname,hd **h)
 {   hdd *new;
-
+    int i;
     FILE *dp,*lf;
     dp=fopen(hname,"r+");
     if(dp==NULL)
@@ -21,10 +21,16 @@ int loadhdd(char *hname,hd **h)
     fseek(dp,0,SEEK_SET);
     fread(new,sizeof(hdd),1,dp);
             (*h)->hdd=new;
+    (*h)->buff=(char*)malloc(sizeof(char)*new->blockSize);
+    (*h)->names=(char**)malloc(sizeof(char*)*100);
+    for(i=0;i<100;i++)
+    {
+        ((*h)->names)[i]=(char*)malloc(24);
+    }
     return 1; //loaded but not yet validated that file is hdd or not
 }
 
-int readBlock(hd *hh,int blockno,char **buf)
+int readBlock(hd *hh,int blockno)
 {   
     fprintf(hh->lf,"--> readBlock() ");
     fflush(hh->lf);
@@ -32,10 +38,10 @@ int readBlock(hd *hh,int blockno,char **buf)
     h=hh->hdd;
     if(blockno>((h->size-1024)/h->blockSize)||blockno<1)
         return 0;   //blockno out of range
-    *buf=(char*) malloc(h->blockSize);
+    //*buf=(char*) malloc(h->blockSize);
     fseek(hh->dp,(blockno-1)*h->blockSize,SEEK_SET);
     for(int i=0;i<h->blockSize;i++)
-        (*buf)[i]=fgetc(hh->dp);
+        (hh->buff)[i]=fgetc(hh->dp);
     return 1;   //successfully return block
 }
 
@@ -61,7 +67,6 @@ int setBlock(hd *hh,unsigned long blockno)
 {   
     fprintf(hh->lf,"--> setBlock() ");
     fflush(hh->lf);
-        char *buff;
     hdd *h;
     h=hh->hdd;
     if(!(blockno>((h->size)/h->blockSize)||blockno<1))
@@ -70,19 +75,17 @@ int setBlock(hd *hh,unsigned long blockno)
         int byteno=((blockno%(h->blockSize*8)-1)/8);
         blockno-=1;
         int bitno=(blockno%8);
-        readBlock(hh,blno,&buff);
-        buff[byteno]=buff[byteno]|(int)(pow(2,bitno));
-        writeBlock(hh,blno,buff);
+        readBlock(hh,blno);
+        (hh->buff)[byteno]=(hh->buff)[byteno]|((int)(1<<bitno));
+        writeBlock(hh,blno,hh->buff);
 
     }
-    free(buff);
     return 0;
 }
 int freeBlock(hd *hh,unsigned long blockno)
 { 
     fprintf(hh->lf,"--> freeBlock() ");
     fflush(hh->lf);
-        char *buff;
     hdd *h;
     h=hh->hdd;
     if(!(blockno>((h->size)/h->blockSize)||blockno<1))
@@ -91,18 +94,16 @@ int freeBlock(hd *hh,unsigned long blockno)
         int byteno=((blockno%(h->blockSize*8)-1)/8);
         blockno-=1;
         int bitno=(blockno%8);
-        readBlock(hh,blno,&buff);
-        buff[byteno]=buff[byteno]&(255-(int)((pow(2,bitno))));
-        writeBlock(hh,blno,buff);
+        readBlock(hh,blno);
+        (hh->buff)[byteno]=(hh->buff)[byteno]&(255-(int)(1<<bitno));
+        writeBlock(hh,blno,hh->buff);
     }
-    free(buff);
     return 0;
 }
 int isFreeBlock(hd *hh,unsigned long blockno)
 {
     fprintf(hh->lf,"--> isFreeBlock() ");
     fflush(hh->lf);
-        char *buff;
         int ret;
     hdd *h;
     h=hh->hdd;
@@ -112,12 +113,10 @@ int isFreeBlock(hd *hh,unsigned long blockno)
         int byteno=(((blockno%(h->blockSize*8))-1)/8);
         blockno-=1;
         int bitno=((blockno)%8);
-        char *buff;
-        readBlock(hh,blno,&buff);
+        readBlock(hh,blno);
         
-        ret= !((buff[byteno]>>bitno)&1);
+        ret= !(((hh->buff)[byteno]>>bitno)&1);
     } 
-    free(buff);
     return ret;
 }
 
@@ -127,25 +126,22 @@ int getFirstFreeBlock(hd *hh, int *block)
     fflush(hh->lf);
     hdd *h;
     h=hh->hdd;
-    char *buff;
     for(long int i=2;i<(h->noofblocks/(h->blockSize*8));i++)
-    {   readBlock(hh,i,&buff);
+    {   readBlock(hh,i);
         for(long int j=0;j<h->blockSize;j++)
         {
-            if((int)(buff[j])<255)
+            if((int)((hh->buff)[j])<255)
             {
                 for(int k=0;k<8;k++)
                 {
-                    if((buff[j] & (1<<k))==0)
+                    if(((hh->buff)[j] & (1<<k))==0)
                     {
                         *block=(k+1)+((j)*8)+((i-2)*(h->blockSize*8));
-                        free(buff);
                         return 1;
                     }
                 }
             }
         }
-        free(buff);
     }
     return 0;
 }
