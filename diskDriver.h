@@ -63,7 +63,7 @@ int writeBlock(hd *hh,int blockno,char *buf)
 }
 
 
-int setBlock(hd *hh,unsigned long blockno)
+int setBlock(hd *hh,int blockno)
 {   
     fprintf(hh->lf,"--> setBlock() ");
     fflush(hh->lf);
@@ -82,7 +82,7 @@ int setBlock(hd *hh,unsigned long blockno)
     }
     return 0;
 }
-int freeBlock(hd *hh,unsigned long blockno)
+int freeBlock(hd *hh,int blockno)
 { 
     fprintf(hh->lf,"--> freeBlock() ");
     fflush(hh->lf);
@@ -100,7 +100,7 @@ int freeBlock(hd *hh,unsigned long blockno)
     }
     return 0;
 }
-int isFreeBlock(hd *hh,unsigned long blockno)
+int isFreeBlock(hd *hh,int blockno)
 {
     fprintf(hh->lf,"--> isFreeBlock() ");
     fflush(hh->lf);

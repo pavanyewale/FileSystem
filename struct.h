@@ -10,6 +10,7 @@ int noofblocks;
 int metablock;
 int nameblock;
 int nameblocksize;
+int metablocksize;
 };
 
 struct hd

@@ -1,13 +1,13 @@
 #include"struct.h"
 int reset(char *);
-int createDisk(char *,int,int);
+int createDisk(char *,int,int,int,int);
 void printb(hd *,int);
 int loadhdd(char *,hd **);
 int readBlock(hd *,int);
 int writeBlock(hd *,int,char *);
-int setBlock(hd *,unsigned long);
-int freeBlock(hd *,unsigned long);
-int isFreeBlock(hd *,unsigned long);
+int setBlock(hd *,int);
+int freeBlock(hd *,int);
+int isFreeBlock(hd *,int);
 int getFirstFreeBlock(hd *, int *);
 int freesubblock(hd *,char **,int,int *);
 int allocateBlock(hd *,int,int *);
