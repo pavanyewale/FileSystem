@@ -1,7 +1,6 @@
 #include<string.h>
 #include<stdlib.h>
 #include"diskDriver.h"
-int display=0;
 int freesubblock(hd *hh,char **buf,int subblocksize,int *blk)
 {   
     hdd *h=hh->hdd;
@@ -55,7 +54,7 @@ int allocateBlock(hd *hh,int internalBlockSize,int *returnBlock)
     if(!*returnBlock)
         return 0;
     unsigned char buf[hh->hdd->blockSize];
-    blocks=(hh->hdd->blockSize/internalBlockSize)+4;
+    blocks=(hh->hdd->blockSize/internalBlockSize);
     bits = blocks/(internalBlockSize<<3);
     if(blocks%(internalBlockSize<<3)>=0)
         bits=bits+1;
@@ -69,10 +68,8 @@ int allocateBlock(hd *hh,int internalBlockSize,int *returnBlock)
     {
         buf[bits]=0x00;
     }
-    
     setBlock(hh,*returnBlock);
     writeBlock(hh,*returnBlock,buf);
-
 return 1;
 }
 
@@ -85,13 +82,8 @@ int writemetablock(hd *hh,int mblock,int block,int nblock)
     readBlock(hh,mblock);
     int mmblock,x,i;
     x= freesubblock(hh,&(hh->buff),8,&mmblock);
-   // printf("\n metablockno:%d",mmblock);
-    //printf("\n%d",block);
     if(x==0)
-    {  
-      /***********************  //here is the main problem ****************************/
-        mmblock=btoi(&(hh->buff)[20]);
-       // printf("when no free block next block :%d",mmblock);
+    {  mmblock=btoi(&(hh->buff)[20]);
         if(mmblock==0)
         {  char buf1[hh->hdd->blockSize];
             for(i=0;i<hh->hdd->blockSize;i++)
@@ -99,7 +91,6 @@ int writemetablock(hd *hh,int mblock,int block,int nblock)
                 buf1[i]=(hh->buff)[i];
             }
             x=allocateBlock(hh,8,&mmblock);
-            //printf("\n next new block:%d",mmblock);
             if(!x)
                 return 0;
             c=(unsigned char*)&mmblock;
@@ -113,23 +104,21 @@ int writemetablock(hd *hh,int mblock,int block,int nblock)
     strcpy(&((hh->buff)[pos]),c);
     c=(unsigned char*)&nblock;
     strcpy(&((hh->buff)[pos+4]),c);
-//printf("%d ,%d",(int)btoi(&((hh->buff)[pos])),pos);
     writeBlock(hh,mblock,hh->buff);
     return 1;
 }
 
 
-int writenameblocks1(hd *hh,int block,char *buf,char **names,int totalNames,int nextBlock,int nextNameBlock,int *returnBlock,int *returnNameBlock)
-{   int i;
 
+int writenameblocks(hd *hh,int block,char *buf,char **names,int totalNames,int nextBlock,int nextNameBlock,int *returnBlock,int *returnNameBlock)
+{   int i;
     fprintf(hh->lf,"--> writenameblocks1() %d  %d",nextBlock,nextNameBlock);
     fflush(hh->lf);
-  
     if(totalNames<=0)
     {   writeBlock(hh,block,buf); 
         *returnBlock=nextBlock;
         *returnNameBlock=nextNameBlock;
-return 1;
+        return 1;
     }
     int flag=freesubblock(hh,&buf,hh->hdd->nameblocksize,returnNameBlock);
     if(!flag)
@@ -154,9 +143,8 @@ return 1;
         writeBlock(hh,block,buf);
         }
             readBlock(hh,blk);
-            return  writenameblocks1(hh,blk,hh->buff,names,totalNames,nextBlock,nextNameBlock,returnBlock,returnNameBlock);
+            return  writenameblocks(hh,blk,hh->buff,names,totalNames,nextBlock,nextNameBlock,returnBlock,returnNameBlock);
     }
-    
     unsigned char s[hh->hdd->blockSize];
     strcpy(&s[0],names[totalNames-1]);
     char *c;
@@ -169,51 +157,44 @@ return 1;
     {
         buf[pos+i]=s[i];
     }
-
-    return writenameblocks1(hh,block,buf,names,totalNames-1,block,*returnNameBlock,returnBlock,returnNameBlock);
+    return writenameblocks(hh,block,buf,names,totalNames-1,block,*returnNameBlock,returnBlock,returnNameBlock);
 
 }
 
+
+
 int writename(hd *hh,char *name)
 {
-    fprintf(hh->lf,"\n\n--> writename()\n ");
+    fprintf(hh->lf,"\n\n--> writename() name:%s\n ",name);
     fflush(hh->lf);
     int n,i;
     char **names;
     int block,nblock;
     split(name,hh->hdd->nameblocksize-8,&(hh->names),&n);
-//printf("\nno of substrings:%d",n);     
 readBlock(hh,hh->hdd->nameblock);
-    
-    writenameblocks1(hh,hh->hdd->nameblock,hh->buff,hh->names,n,0,0,&block,&nblock); 
+    writenameblocks(hh,hh->hdd->nameblock,hh->buff,hh->names,n,0,0,&block,&nblock); 
     return  writemetablock(hh,hh->hdd->metablock,block,nblock);
-
 }
 
-int getName(hd *hh,char *buf,int block,int nameblock,int level,char *returnName)
+int getName(hd *hh,char *buf,int block,int nameblock,int level,char *returnName)//level  by default 1
 {
     fprintf(hh->lf,"-->getName() %d  %d",block,nameblock);
     fflush(hh->lf);
     strncat(returnName,&buf[(nameblock-1)*hh->hdd->nameblocksize],hh->hdd->nameblocksize-8);
-
     int nextblock=btoi(&buf[nameblock*hh->hdd->nameblocksize-8]);
-
     int nextnameblock=btoi(&buf[nameblock*hh->hdd->nameblocksize-4]);
     if(nextblock==0)
         return 0;
     if(nextblock!=block)
     {
-    //printf("\n next block is : %d",nextblock);     
     readBlock(hh,nextblock);
     }
     return getName(hh,hh->buff,nextblock,nextnameblock,level+1,returnName);
-
 }
 
 
 void displayNames1(hd *hh,char *buf,int metablock)
 {
-    display++;
     fprintf(hh->lf,"\n--> displayNames1111()\n ");
     fflush(hh->lf);
     char str[1000];
@@ -222,17 +203,13 @@ void displayNames1(hd *hh,char *buf,int metablock)
     if(block==0)
         return; 
     readBlock(hh,block);
-    //printf("\nblock:%d \t Name block:%d",block,(int)btoi(&buf[(metablock*8)+4]));
     getName(hh,hh->buff,block,btoi(&buf[(metablock*8)+4]),1,&str[0]);
     printf("\n%s",str);
-    
     return;
 }
-
-
 int displayNames(hd *hh,int mblock)
 {
-    fprintf(hh->lf,"\n\n--> displayNames(mblock:%d)\n ",mblock);
+    fprintf(hh->lf,"\n\n--> displayNames()\n ");
     fflush(hh->lf);
     char buf[hh->hdd->blockSize];
     int i,j,bit,byte;
@@ -249,7 +226,6 @@ int displayNames(hd *hh,int mblock)
             displayNames1(hh,buf,j);
         }
     }
-
     for(i=1;i<byte;i++)
     {
             for(j=0;j<8;j++)
@@ -259,7 +235,6 @@ int displayNames(hd *hh,int mblock)
                     displayNames1(hh,buf,j+(i*8));
                 }
             }
-    
     } 
     for(j=0;j<bit;j++)
     {   
@@ -268,7 +243,6 @@ int displayNames(hd *hh,int mblock)
             displayNames1(hh,buf,j+(i*8));
         }
     }
-
    i= btoi(&buf[20]);
    if(i!=0)
    {
@@ -276,7 +250,6 @@ int displayNames(hd *hh,int mblock)
    }
 return 0;
 }
-
 
 int searchName(hd *hh,char *filename,int mblock,int *mmblock,int *submblock,int *nblock,int *subnblock)
 {
@@ -357,7 +330,7 @@ int searchName(hd *hh,char *filename,int mblock,int *mmblock,int *submblock,int 
     }  
     i= btoi(&buf[20]);
    if(i!=0)
-   {    printf("\nNext name block is %d",i);
+   {    
         return searchName(hh,filename,i,mmblock,submblock,nblock,subnblock);
    }
 return 0;
@@ -392,7 +365,6 @@ int deleteFileName(hd *hh,char *filename)
     fflush(hh->lf);
     int mblock,smblock,nblock,snblock;
     int x=searchName(hh,filename,hh->hdd->metablock,&mblock,&smblock,&nblock,&snblock);
-   printf("\n%d,%d,%d,%d",mblock,smblock,nblock,snblock); 
     if(!x)
     {
         return 0;
@@ -417,10 +389,5 @@ int replace(hd *hh,char *to,char *by)
     return 1;
     }
 return 0;
-
-}
-
-int insertData()
-{
 
 }

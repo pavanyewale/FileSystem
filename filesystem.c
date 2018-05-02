@@ -19,34 +19,48 @@ for(i=0;i<h->blockSize;i++)
 void main()
     {
         int code;
-        code=createDisk("Disk4",1024*1024*1024,2048,32,8);
+        code=createDisk("Disk4",1024*1024*1024,1024);
        hd *h;
-       loadhdd("Disk4",&h);
+        loadhdd("Disk4",&h);
 
     fprintf(h->lf,"--> main function()\n ");
     fflush(h->lf);
-       int n;
-       char **str;
-       char *buf;
-       int blk,nblk;
-      int mb,smb,nb,snb;
-displayNames(h,h->hdd->metablock);
-      for(int i=0;i<10;i++)
-      {
-       writename(h,"smart Boy");
-      }
-        writename(h,"pavan yewaleksjf kfj l;adjfa; ldjf ;laskdjf ;lakjdf ;alskjd f;lakjsd ;fkajas;ld fjk a;sldjf a;ljsd f;lakjs d;lf jal;ksd jf;lajsdf;lkakjsd;lf jka;ld fjal; kjfals djfl;ajsdf a;lsdkfja;lksdjf a;lksdjfk;lajfioweirjqwioerhjmn laijs[oierj;lwmrweo j hiii");
-        writename(h,"pavan yewaleksjf kfj l;adjfa; ldjf ;laskdjf ;lakjdf ;alskjd f;lakjsd ;fkajas;ld fjk a;sldjf a;ljsd f;lakjs d;lf jal;ksd jf;lajsdf;lkakjsd;lf jka;ld fjal; kjfals djfl;ajsdf a;lsdkfja;lksdjf a;lksdjfk;lajfioweirjqwioerhjmn laijs[oierj;lwmrweo j hiii");
-        writename(h,"pavan yewaleksjf kfj l;adjfa; ldjf ;laskdjf ;lakjdf ;alskjd f;lakjsd ;fkajas;ld fjk a;sldjf a;ljsd f;lakjs d;lf jal;ksd jf;lajsdf;lkakjsd;lf jka;ld fjal; kjfals djfl;ajsdf a;lsdkfja;lksdjf a;lksdjfk;lajfioweirjqwioerhjmn laijs[oierj;lwmrweo j hiii");
-        writename(h,"pavan yewaleksjf kfj l;adjfa; ldjf ;laskdjf ;lakjdf ;alskjd f;lakjsd ;fkajas;ld fjk a;sldjf a;ljsd f;lakjs d;lf jal;ksd jf;lajsdf;lkakjsd;lf jka;ld fjal; kjfals djfl;ajsdf a;lsdkfja;lksdjf a;lksdjfk;lajfioweirjqwioerhjmn laijs[oierj;lwmrweo j hiii");
-      /*  displayNames(h,h->hdd->metablock);
-        int x=replace(h,"pavan yewale hiii","pavanyewale you are fool............");
-        if(x!=0)
+    int choice;
+    char data[1000],by[1000];
+    while(1)
+    {
+        printf("\n 1.insert\t2.delete\t3.replace\t4.display\t5.exit");
+        scanf("%d",&choice);
+        switch(choice)
         {
-        displayNames(h,h->hdd->metablock);
+            case 1: fscanf(stdin,"%s",data);
+                    writename(h,data);
+                    break;
+            case 2:fscanf(stdin,"%s",data);
+                   code=deleteFileName(h,data);
+                   if(code)
+                       fprintf(stdout,"\ndeleted");
+                   else
+                       fprintf(stdout,"\n not found");
+                   break;
+            case 3:fprintf(stdout,"\nEnter name to replace:");
+                   fscanf(stdin,"%s",data);
+                   fprintf(stdout,"\nEnter name by replace");
+                   fscanf(stdin,"%s",by);
+                   code=replace(h,data,by);
+                   if(code)
+                       fprintf(stdout,"\n replaced");
+                   else
+                       fprintf(stdout,"\n not found");
+
+                   break;
+
+
+            case 4: displayNames(h,h->hdd->metablock);
+                    break;
+            case 5: exit(0);
+            
+                    
         }
-        else{
-        printf("\n Not found... to replace");
-        }
-*/
+    }
  }

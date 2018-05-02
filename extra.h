@@ -19,12 +19,10 @@ return i;
 int split(char *str,int no,char ***result,int *n)
  {  
      int x = strlen(str)/no +1,i,k=0,j=0;
-  //   *result = (char**)malloc(sizeof(char*)*x);
      if(*result==NULL)
          return 0;
      while(str[k]!='\0')
      {
-        // (*result)[j] = (char*)malloc(sizeof(char)*no);
          for(i=0;i<no&&str[k]!='\0';k++,i++)
          {
             (*result)[j][i]=str[k];

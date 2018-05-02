@@ -38,7 +38,6 @@ int readBlock(hd *hh,int blockno)
     h=hh->hdd;
     if(blockno>((h->size-1024)/h->blockSize)||blockno<1)
         return 0;   //blockno out of range
-    //*buf=(char*) malloc(h->blockSize);
     fseek(hh->dp,(blockno-1)*h->blockSize,SEEK_SET);
     for(int i=0;i<h->blockSize;i++)
         (hh->buff)[i]=fgetc(hh->dp);
@@ -63,7 +62,7 @@ int writeBlock(hd *hh,int blockno,char *buf)
 }
 
 
-int setBlock(hd *hh,int blockno)
+int setBlock(hd *hh,unsigned long blockno)
 {   
     fprintf(hh->lf,"--> setBlock() ");
     fflush(hh->lf);
@@ -82,7 +81,7 @@ int setBlock(hd *hh,int blockno)
     }
     return 0;
 }
-int freeBlock(hd *hh,int blockno)
+int freeBlock(hd *hh,unsigned long blockno)
 { 
     fprintf(hh->lf,"--> freeBlock() ");
     fflush(hh->lf);
@@ -100,7 +99,7 @@ int freeBlock(hd *hh,int blockno)
     }
     return 0;
 }
-int isFreeBlock(hd *hh,int blockno)
+int isFreeBlock(hd *hh,unsigned long blockno)
 {
     fprintf(hh->lf,"--> isFreeBlock() ");
     fflush(hh->lf);

@@ -53,7 +53,7 @@ int reset(char *hddname)
 
 
 
-int createDisk(char *name,int size,int blocksize,int nameblocksize,int metablocksize)
+int createDisk(char *name,int size,int blocksize)
 {
     FILE *fp;
     fp=fopen(name,"r");
@@ -86,9 +86,7 @@ int createDisk(char *name,int size,int blocksize,int nameblocksize,int metablock
     h=(hdd*)malloc(sizeof(hdd));
     h->size=size;
     h->blockSize=blocksize;
-    h->nameblocksize=nameblocksize;
-    h->metablocksize=metablocksize;
-
+    h->nameblocksize=32;
     h->noofblocks=size/blocksize;
     h->metablock=((h->noofblocks)/(blocksize*8))+2;
     h->nameblock=h->metablock+1;
