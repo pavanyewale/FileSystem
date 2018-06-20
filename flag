@@ -1,2 +1,0 @@
-#DSCFLAGS = -Wall -Werror -Wextra -Waggregate-return -Wcast-align -Wcast-qual -Wconversion -Wjump-misses-init -Wlogical-op -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wpointer-arith -Wredundant-decls -Wshadow -Wstrict-prototypes -Wuninitialized -Wwrite-strings -pedantic -ansi -fno-common -fshort-enums
-
