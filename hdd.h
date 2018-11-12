@@ -1,7 +1,6 @@
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
-#include"fname.h"
 
 int reset(char *hddname)
 { 
@@ -51,18 +50,16 @@ int reset(char *hddname)
     return 1;
 }
 
-
-
 int createDisk(char *name,int size,int blocksize)
 {
     FILE *fp;
     fp=fopen(name,"r");
     if(fp!=NULL)
     {
-        return 0;
+        return 0;//file allready exists
     }
     float s;
-    s=size/(1024);
+    s=size/();
     char ss[10];
     sprintf(ss,"%f",s);
     char *cmd;
@@ -71,6 +68,7 @@ int createDisk(char *name,int size,int blocksize)
     strcat(cmd,ss);
     strcat(cmd,"KB ");
     strcat(cmd,name);
+    print(cmd)
     int x=system(cmd);
     free(cmd);
     if(x==127)
