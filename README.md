@@ -1,5 +1,5 @@
 # FileSystem
-A file system for finding,inserting,deleting a data in the HardDrive more Efficiently using datastructures like tree,linklist,etc.
+A file system for finding,inserting,deleting a data in the HardDrive more Efficiently using datastructures like tree,linklist,bitmap etc. 
 
 #How to run:
   compile file filesystem.c using following command
